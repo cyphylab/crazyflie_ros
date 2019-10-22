@@ -142,6 +142,8 @@ public:
     , m_sentExternalPosition(false)
   {
     m_thread = std::thread(&CrazyflieROS::run, this);
+    __t0 = 0;
+    init_time = false;
   }
 
   void stop()
@@ -345,7 +347,6 @@ void cmdPositionSetpoint(
         ax, ay, az,
         qx, qy, qz, qw,
         rollRate, pitchRate, yawRate);
-      m_sentSetpoint = true;
       //ROS_INFO("set a full state setpoint");
     }
   }
@@ -354,8 +355,16 @@ void cmdPositionSetpoint(
     const geometry_msgs::PointStamped::ConstPtr& msg)
   {
       // Convert the time stamp into a float
-      float time = msg->header.stamp.sec + msg->header.stamp.nsec / 1e9;
-    m_cf.sendExternalPositionUpdate(msg->point.x, msg->point.y, msg->point.z, time);
+      long unsigned int timeNsec = msg->header.stamp.nsec;
+      long unsigned int timeSec = msg->header.stamp.sec * 1e9;
+      
+      if (!init_time) {
+        __t0 = timeSec;
+        init_time = true;
+      }
+
+      float total_sec = (timeNsec + timeSec - __t0) / 1e9; // sec
+    m_cf.sendExternalPositionUpdate(msg->point.x, msg->point.y, msg->point.z, (float)total_sec);
     m_sentExternalPosition = true;
   }
 
@@ -862,6 +871,9 @@ private:
 
   std::thread m_thread;
   ros::CallbackQueue m_callback_queue;
+
+  long unsigned int __t0;
+  bool init_time;
 };
 
 class CrazyflieServer
