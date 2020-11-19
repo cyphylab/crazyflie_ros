@@ -444,7 +444,7 @@ void cmdPositionSetpoint(
     if (m_enableParameters)
     {
       ROS_INFO_NAMED(m_tf_prefix, "Requesting parameters...");
-      m_cf.requestParamToc();
+      m_cf.requestParamToc(true);
       for (auto iter = m_cf.paramsBegin(); iter != m_cf.paramsEnd(); ++iter) {
         auto entry = *iter;
         std::string paramName = "/" + m_tf_prefix + "/" + entry.group + "/" + entry.name;
@@ -485,7 +485,7 @@ void cmdPositionSetpoint(
       m_cf.setEmptyAckCallback(cb_ack);
 
       ROS_INFO_NAMED(m_tf_prefix, "Requesting Logging variables...");
-      m_cf.requestLogToc();
+      m_cf.requestLogToc(true);
 
       if (m_enable_logging_imu) {
         std::function<void(uint32_t, logImu*)> cb = std::bind(&CrazyflieROS::onImuData, this, std::placeholders::_1, std::placeholders::_2);
